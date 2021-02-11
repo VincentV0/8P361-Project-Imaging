@@ -74,7 +74,6 @@ def get_pcam_generators(base_dir, train_batch_size=32, val_batch_size=32):
 
      return train_gen, val_gen
 
-
 # the size of the images in the PCAM dataset
 IMAGE_SIZE = 96
 
@@ -84,7 +83,7 @@ input_shape = (IMAGE_SIZE, IMAGE_SIZE, 3)
 input = Input(input_shape)
 
 # get the pretrained model, cut out the top layer
-pretrained = MobileNetV2(input_shape=input_shape, include_top=False, weights='imagenet')
+pretrained = MobileNetV2(input_shape=input_shape, include_top=False, weights=None)
 
 # if the pretrained model it to be used as a feature extractor, and not for
 # fine-tuning, the weights of the model can be frozen in the following way
@@ -109,7 +108,7 @@ train_gen, val_gen = get_pcam_generators('../../data/')
 
 
 # save the model and weights
-model_name = 'Transfer_learning_model_1'
+model_name = 'Transfer_learning_model_2'
 model_filepath = '../CNN results/' + model_name + '.json'
 weights_filepath = '../CNN results/' + model_name + '_weights.hdf5'
 
@@ -149,4 +148,4 @@ plot_ROC_curve(fpr,tpr, save_folder, model_name)
 with open(os.path.join(save_folder, model_name + '_scores.txt'), 'w') as result_file:
     result_file.write('AUC score      = {}\n'.format(auc_score))
     result_file.write('F1 score       = {}\n'.format(f1))
-    result_file.write('Accuracy score = {}\n'.format(acc))
+    result_file.write('Accuracy score = {}'.format(acc))
