@@ -151,7 +151,7 @@ def train_and_evaluate_CNN(model, model_name='CNN', save_folder='./'):
     # evaluate model
     y_pred = model.predict(val_gen,verbose = 0)
     y_pred_bin = (y_pred > 0.5).astype(int)
-    loss, acc_ev = model.evaluate(X_test, y_test, verbose=0)
+    loss, acc_ev = model.evaluate(val_gen, verbose=0)
 
     # calculate scores
     fpr, tpr, _ = roc_curve(val_gen.labels, y_pred)
@@ -166,7 +166,6 @@ def train_and_evaluate_CNN(model, model_name='CNN', save_folder='./'):
         result_file.write('F1 score       = {}\n'.format(f1))
         result_file.write('Accuracy score = {}\n'.format(acc))
         result_file.write('Accuracy (model.evaluate) = {}'.format(acc_ev))
-
     return model
 
 ################################################################################
