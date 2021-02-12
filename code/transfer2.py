@@ -70,6 +70,7 @@ def get_pcam_generators(base_dir, train_batch_size=32, val_batch_size=32):
      val_gen = datagen.flow_from_directory(valid_path,
                                              target_size=(IMAGE_SIZE, IMAGE_SIZE),
                                              batch_size=val_batch_size,
+                                             shuffle=False,
                                              class_mode='binary')
 
      return train_gen, val_gen
