@@ -125,8 +125,8 @@ callbacks_list = [checkpoint, tensorboard]
 
 
 # train the model, note that we define "mini-epochs"
-train_steps = train_gen.n//train_gen.batch_size//20
-val_steps = val_gen.n//val_gen.batch_size//20
+train_steps = train_gen.n//train_gen.batch_size#//20
+val_steps = val_gen.n//val_gen.batch_size#//20
 
 # since the model is trained for only 10 "mini-epochs", i.e. half of the data is
 # not used during training

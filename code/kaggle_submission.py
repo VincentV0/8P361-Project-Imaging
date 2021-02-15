@@ -5,7 +5,7 @@ Author: Suzanne Wetstein
 '''
 
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}   
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 import tensorflow as tf
 
 import numpy as np
@@ -17,9 +17,9 @@ from matplotlib.pyplot import imread
 from tensorflow.keras.models import model_from_json
 
 #Change these variables to point at the locations and names of the test dataset and your models.
-TEST_PATH = 'C:/Datasets/test/' 
-MODEL_FILEPATH = 'my_first_cnn_model.json' 
-MODEL_WEIGHTS_FILEPATH = 'my_first_cnn_model_weights.hdf5'
+TEST_PATH = '../../data/test/'
+MODEL_FILEPATH = '../CNN results/CNN_01.json'
+MODEL_WEIGHTS_FILEPATH = '../CNN results/CNN_01_weights.hdf5'
 
 # load model and model weights
 json_file = open(MODEL_FILEPATH, 'r')
@@ -47,18 +47,18 @@ for idx in range(0, max_idx, file_batch):
     test_df = pd.DataFrame({'path': test_files[idx:idx+file_batch]})
 
 
-    # get the image id 
+    # get the image id
     test_df['id'] = test_df.path.map(lambda x: x.split(os.sep)[-1].split('.')[0])
     test_df['image'] = test_df['path'].map(imread)
-    
-    
+
+
     K_test = np.stack(test_df['image'].values)
-    
+
     # apply the same preprocessing as during draining
     K_test = K_test.astype('float')/255.0
-    
+
     predictions = model.predict(K_test)
-    
+
     test_df['label'] = predictions
     submission = pd.concat([submission, test_df[['id', 'label']]])
 

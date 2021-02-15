@@ -93,7 +93,7 @@ pretrained = MobileNetV2(input_shape=input_shape, include_top=False, weights='im
 
 output = pretrained(input)
 output = GlobalAveragePooling2D()(output)
-output = Dropout(0.5)(output)
+#output = Dropout(0.5)(output)
 output = Dense(1, activation='sigmoid')(output)
 
 model = Model(input, output)
@@ -109,7 +109,7 @@ train_gen, val_gen = get_pcam_generators('../../data/')
 
 
 # save the model and weights
-model_name = 'Transfer_learning_model_1'
+model_name = 'Transfer_learning_model_3'
 model_filepath = '../CNN results/' + model_name + '.json'
 weights_filepath = '../CNN results/' + model_name + '_weights.hdf5'
 
