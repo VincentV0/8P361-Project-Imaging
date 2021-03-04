@@ -26,6 +26,7 @@ IMAGE_SIZE = 96
 DATA_PATH  = '../../data/';
 
 ################################ ↓ MODELS ↓ ####################################
+
 def get_model_1(kernel_size=(3,3), pool_size=(4,4), first_filters=32, second_filters=64):
      # build the model
      model = keras.Sequential()
@@ -41,14 +42,14 @@ def get_model_1(kernel_size=(3,3), pool_size=(4,4), first_filters=32, second_fil
      model.compile(SGD(lr=0.01, momentum=0.95), loss = 'binary_crossentropy', metrics=['accuracy'])
      return model
 
-def get_model_2(kernel_size=(3,3), pool_size=(4,4), first_filters=8, second_filters=4):
-     # build the model
+def get_model_2(kernel_size=(3,3), pool_size=(4,4)):
+    # build the model
     model = keras.Sequential()
-    model.add(Conv2D(first_filters, kernel_size, activation = 'relu', padding = 'same', input_shape = (IMAGE_SIZE, IMAGE_SIZE, 3)))
+    model.add(Conv2D(16, kernel_size, activation = 'relu', padding = 'same', input_shape = (IMAGE_SIZE, IMAGE_SIZE, 3)))
     model.add(MaxPool2D(pool_size = pool_size))
-    model.add(Conv2D(second_filters, kernel_size, activation = 'relu', padding = 'same'))
+    model.add(Conv2D(32, kernel_size, activation = 'relu', padding = 'same'))
     model.add(MaxPool2D(pool_size = pool_size))
-    model.add(Conv2D(2, kernel_size, activation = 'relu', padding = 'same'))
+    model.add(Conv2D(128, kernel_size, activation = 'relu', padding = 'same'))
     model.add(MaxPool2D(pool_size = pool_size))
     model.add(Conv2D(1, (1,1), activation = 'sigmoid', padding = 'same'))
     model.add(Flatten())
@@ -57,6 +58,8 @@ def get_model_2(kernel_size=(3,3), pool_size=(4,4), first_filters=8, second_filt
     # compile and return the model
     model.compile(SGD(lr=0.01, momentum=0.95), loss = 'binary_crossentropy', metrics=['accuracy'])
     return model
+
+
 
 ################################ ↑ MODELS ↑ ####################################
 
@@ -122,59 +125,72 @@ def plot_ROC_curve(fpr, tpr, folder, model_name):
 def train_and_evaluate_CNN(model, model_name='CNN', save_folder='./'):
     """
     DESCRIPTION: This function trains and evaluates the CNN.
+
+    Parameters:
+    ----------
+    model:       A fully constructed and compiled model;
+    model_name:  Used for the filenames of results and the TensorBoard logs
+    save_folder: Used to determine where results should be saved (excl. Tensorboard
+                 logs!)
+
+    Returns:
+    -------
+    model:       The fitted model is returned.
     """
-    # get the data generators
+
+    # Get the data generators
     train_gen, val_gen = get_pcam_generators(DATA_PATH)
 
-    # save the model and weights
+    # Define filepaths to save the model and weights
     model_filepath = os.path.join(save_folder, model_name + '.json');
     weights_filepath = os.path.join(save_folder, model_name + '_weights.hdf5');
 
-    model_json = model.to_json() # serialize model to JSON
+    # Save the model to a .json file
+    model_json = model.to_json()
     with open(model_filepath, 'w') as json_file:
         json_file.write(model_json)
 
-    # define the model checkpoint and Tensorboard callbacks
+    # Define the model checkpoint and TensorBoard callbacks
     checkpoint = ModelCheckpoint(weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
     tensorboard = TensorBoard(os.path.join('../TB_logs', model_name))
     callbacks_list = [checkpoint, tensorboard]
 
-    # train the model
+    # Define the number of training samples to use during a single epoch, and
+    # the number of validation samples validated on per epoch.
     train_steps = train_gen.n//train_gen.batch_size
     val_steps = val_gen.n//val_gen.batch_size
 
+    # Train the model
     history = model.fit(train_gen, steps_per_epoch=train_steps,
                         validation_data=val_gen,
                         validation_steps=val_steps,
-                        epochs=3,
+                        epochs=10,
                         callbacks=callbacks_list)
 
-    # evaluate model
+    # Evaluate model
     y_pred = model.predict(val_gen,verbose = 0)
     y_pred_bin = (y_pred > 0.5).astype(int)
-    loss, acc_ev = model.evaluate(val_gen, verbose=0)
 
-    # calculate scores
+    # Calculate scores
     fpr, tpr, _ = roc_curve(val_gen.labels, y_pred)
     auc_score = roc_auc_score(val_gen.labels, y_pred)
     f1 = f1_score(val_gen.labels, y_pred_bin)
     acc = accuracy_score(val_gen.labels, y_pred_bin)
 
-    # save results
+    # Save results
     plot_ROC_curve(fpr,tpr, save_folder, model_name)
     with open(os.path.join(save_folder, model_name + '_scores.txt'), 'w') as result_file:
         result_file.write('AUC score      = {}\n'.format(auc_score))
         result_file.write('F1 score       = {}\n'.format(f1))
         result_file.write('Accuracy score = {}\n'.format(acc))
-        result_file.write('Accuracy (model.evaluate) = {}'.format(acc_ev))
     return model
 
 ################################################################################
 
 # get the 1st model
-#model1 = get_model_1()
-#trained_model1 = train_and_evaluate_CNN(model1, model_name='CNN_01', save_folder='../CNN results/')
+model1 = get_model_1()
+trained_model1 = train_and_evaluate_CNN(model1, model_name='CNN_01', save_folder='../CNN results/')
 
 # get the 2nd model
-#model2 = get_model_2()
-#trained_model2 = train_and_evaluate_CNN(model2, model_name='CNN_02', save_folder='../CNN results/')
+model2 = get_model_2()
+trained_model2 = train_and_evaluate_CNN(model2, model_name='CNN_02', save_folder='../CNN results/')
